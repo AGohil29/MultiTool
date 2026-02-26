@@ -1,0 +1,3 @@
+<resources>
+    <string name="time_label">Seconds Passed: %1$d</string>
+</resources>
