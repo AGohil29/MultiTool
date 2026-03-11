@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -51,7 +52,8 @@ fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
                 .fillMaxSize()
                 // 2. Apply padding only to the content to respect the Safe Area
                 .windowInsetsPadding(WindowInsets.systemBars),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Image(
                 painter = painterResource(Res.drawable.ic_timer),
@@ -70,12 +72,15 @@ fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
 
             //UserScreen(userData)
             UsersListScreen(users)
+
+            // Button to manual sync
+            Button(onClick = { viewModel.refreshData(true) }) { Text("Refresh") }
         }
     }
 }
 
 @Composable
-fun UsersListScreen(users: List<UserEntity>) {
+fun UsersListScreen(users: List<User>) {
     LazyColumn {
         items(users) { user ->
             Text("Welcome, ${user.name}")

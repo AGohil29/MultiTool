@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.arun.multitool.data.UserEntity
 import org.arun.multitool.data.UserRepository
 
 class TimerViewModel(
@@ -26,7 +25,7 @@ class TimerViewModel(
     val userState = _userState.asStateFlow()
 
     // UI observes this. It updates automatically whenever the DB changes.
-    val usersList: StateFlow<List<UserEntity>> = userRepository.getAllUsers()
+    val usersList: StateFlow<List<User>> = userRepository.getAllUsers()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -34,7 +33,7 @@ class TimerViewModel(
         )
 
     init {
-        refreshData()
+        refreshData(false)
     }
 
     private fun startTimer() {
@@ -50,9 +49,9 @@ class TimerViewModel(
         notifier.showToast("Hello from Shared ViewModel!")
     }
 
-    fun refreshData() {
+    fun refreshData(forceRefresh: Boolean) {
         viewModelScope.launch {
-            userRepository.refreshUsers()
+            userRepository.refreshUsersIfNecessary(forceRefresh)
         }
     }
 }

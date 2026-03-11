@@ -1,25 +1,45 @@
 package org.arun.multitool.data
 
+import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.request.get
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.arun.multitool.NetworkResult
 import org.arun.multitool.User
+import kotlin.time.Clock
 
 class UserRepository(
     private val client: HttpClient,
     private val userDao: UserDao,
+    private val settings: Settings
 ) {
-    // 1. Single Source of Truth: UI observes this Flow
-    // Any change in the database triggers an emission here
-    fun getAllUsers(): Flow<List<UserEntity>> = userDao.getAllUsers()
+    private val LAST_SYNC_KEY = "last_sync_timestamp"
+    private val SYNC_INTERVAL_MS = 10 * 60 * 1000L // 10 minutes
+
+    // 1. Expose a Flow from the Database (SSOT)
+    fun getAllUsers(): Flow<List<User>> = userDao.getAllUsers().map { entities ->
+        entities.map { User(it.id, it.name, it.email) }     // Map to UI Model
+    }
+
+    suspend fun refreshUsersIfNecessary(forceRefresh: Boolean = false) {
+        val lastSync = settings.getLong(LAST_SYNC_KEY, 0L)
+        val currentTime = Clock.System.now().toEpochMilliseconds()
+
+        if (forceRefresh || currentTime - lastSync > SYNC_INTERVAL_MS) {
+            val result = refreshUsers()
+            if (result is NetworkResult.Success) {
+                settings.putLong(LAST_SYNC_KEY, currentTime)
+            }
+        }
+    }
 
     // 2. The Sync Logic: Fetch from Network -> Save to DB
-    suspend fun refreshUsers(): NetworkResult<Unit> {
+    private suspend fun refreshUsers(): NetworkResult<Unit> {
         return try {
             // Fetch list of users from API
             val users: List<User> = client.get("https://jsonplaceholder.typicode.com/users").body()
