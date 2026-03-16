@@ -61,6 +61,11 @@ kotlin {
             implementation(libs.sqlite.bundled)
             implementation(libs.multiplatform.settings)
             implementation(libs.kotlinx.datetime)
+            implementation(libs.voyager.navigator)
+            implementation(libs.voyager.transitions)
+            implementation(libs.voyager.koin)
+            implementation(libs.compose.icons.core)
+//            implementation(libs.compose.icons.extended) // Only if needed
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

@@ -1,8 +1,7 @@
 package org.arun.multitool
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -14,7 +13,7 @@ import org.arun.multitool.data.UserRepository
 class TimerViewModel(
     private val userRepository: UserRepository,
     private val notifier: PlatformNotifier
-) : ViewModel() {
+) : ScreenModel {
     private val _seconds = MutableStateFlow(0)
     val seconds: StateFlow<Int> = _seconds.asStateFlow()
 
@@ -27,7 +26,7 @@ class TimerViewModel(
     // UI observes this. It updates automatically whenever the DB changes.
     val usersList: StateFlow<List<User>> = userRepository.getAllUsers()
         .stateIn(
-            scope = viewModelScope,
+            scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
@@ -36,21 +35,21 @@ class TimerViewModel(
         refreshData(false)
     }
 
-    private fun startTimer() {
-        viewModelScope.launch {
-            while (true) {
-                delay(1000)
-                _seconds.value++
-            }
-        }
-    }
+//    private fun startTimer() {
+//        viewModelScope.launch {
+//            while (true) {
+//                delay(1000)
+//                _seconds.value++
+//            }
+//        }
+//    }
 
     fun onButtonClicked() {
         notifier.showToast("Hello from Shared ViewModel!")
     }
 
     fun refreshData(forceRefresh: Boolean) {
-        viewModelScope.launch {
+        screenModelScope.launch {
             userRepository.refreshUsersIfNecessary(forceRefresh)
         }
     }

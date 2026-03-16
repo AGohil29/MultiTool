@@ -25,7 +25,7 @@ val sharedModule = module {
 
     // ViewModel: Koin 4.0 handles CMP ViewModels natively
 //    viewModelOf(::TimerViewModel)
-    viewModel { TimerViewModel(get<UserRepository>(), get<PlatformNotifier>()) }
+    factory { TimerViewModel(get(), get()) }
 }
 
 expect val platformModule: Module
