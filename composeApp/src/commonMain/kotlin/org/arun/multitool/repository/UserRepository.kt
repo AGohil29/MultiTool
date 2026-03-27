@@ -1,4 +1,4 @@
-package org.arun.multitool.data
+package org.arun.multitool.repository
 
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.arun.multitool.NetworkResult
-import org.arun.multitool.User
+import org.arun.multitool.data.User
+import org.arun.multitool.data.UserDao
+import org.arun.multitool.data.UserEntity
 import kotlin.time.Clock
 
 class UserRepository(

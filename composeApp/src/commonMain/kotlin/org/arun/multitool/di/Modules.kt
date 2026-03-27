@@ -1,15 +1,13 @@
 package org.arun.multitool.di
 
 import com.russhwolf.settings.Settings
-import org.arun.multitool.PlatformNotifier
-import org.arun.multitool.TimerViewModel
+import org.arun.multitool.ui.viewmodels.TimerViewModel
 import org.arun.multitool.data.UserDao
-import org.arun.multitool.data.UserRepository
+import org.arun.multitool.repository.UserRepository
 import org.arun.multitool.data.database.AppDatabase
 import org.arun.multitool.data.database.getRoomDatabase
-import org.arun.multitool.httpClient
+import org.arun.multitool.data.httpClient
 import org.koin.core.module.Module
-import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 val sharedModule = module {
