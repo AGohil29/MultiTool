@@ -31,6 +31,8 @@ import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import org.arun.multitool.ui.components.CommonAlertDialog
+import org.arun.multitool.ui.components.HapticManager
+import org.koin.compose.koinInject
 
 data class UserDetailScreen(val userId: Int, val name: String) : Screen {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -38,13 +40,14 @@ data class UserDetailScreen(val userId: Int, val name: String) : Screen {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         var showDeleteDialog by remember { mutableStateOf(false) }
+        val haptic = koinInject<HapticManager>()
 
         if (showDeleteDialog) {
             CommonAlertDialog(
                 title = "Delete User",
                 message = "Are you sure you want to remove this team member?",
                 onConfirm = {
-                    // todo - handle delete
+                    haptic.notification()
                 },
                 onDismiss = { showDeleteDialog = false }
             )

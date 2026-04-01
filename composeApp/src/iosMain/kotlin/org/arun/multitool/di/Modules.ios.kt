@@ -5,6 +5,8 @@ import org.arun.multitool.IosNotifier
 import org.arun.multitool.PlatformNotifier
 import org.arun.multitool.data.database.AppDatabase
 import org.arun.multitool.data.database.getDatabaseBuilder
+import org.arun.multitool.ui.components.HapticManager
+import org.arun.multitool.ui.components.IOSHapticManager
 import org.koin.dsl.module
 
 actual val platformModule = module {
@@ -12,4 +14,5 @@ actual val platformModule = module {
     single<RoomDatabase.Builder<AppDatabase>> {
         getDatabaseBuilder()
     }
+    single<HapticManager> { IOSHapticManager() }
 }

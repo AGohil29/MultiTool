@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -26,6 +27,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,7 +38,10 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import org.arun.multitool.data.User
+import org.arun.multitool.ui.common.rememberHapticFeedback
+import org.arun.multitool.ui.components.HapticManager
 import org.arun.multitool.ui.screens.UserListScreen
+import org.koin.compose.koinInject
 
 @Composable
 @Preview
@@ -81,6 +88,7 @@ fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
 //            Button(onClick = { viewModel.refreshData(true) }) { Text("Refresh") }
 //        }
 //    }
+
     MaterialTheme {
         Navigator(screen = UserListScreen) { navigator ->
             SlideTransition(navigator) { screen ->
@@ -93,6 +101,44 @@ fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UsersListContent(users: List<User>, onUserClick: (User) -> Unit) {
+    val scrollState = rememberLazyListState()
+    scrollState.rememberHapticFeedback(koinInject())
+//    val isAtTop by remember { derivedStateOf { scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0 } }
+
+//    produceState(initialValue = Unit, scrollState) {
+//        // Create a flow that combines the index and the "at top" status
+//        snapshotFlow {
+//            Pair(scrollState.firstVisibleItemIndex, scrollState.isScrollInProgress)
+//        }
+//            .distinctUntilChanged()
+//            .collect { (index, isScrolling) ->
+//                if (isScrolling) {
+//                    haptic.selection()
+//
+//                    if (index == 0 && scrollState.firstVisibleItemScrollOffset == 0) {
+//                        haptic.impact()
+//                    }
+//                }
+//            }
+//    }
+
+//    LaunchedEffect(scrollState) {
+//        snapshotFlow { scrollState.firstVisibleItemIndex }
+//            .distinctUntilChanged()    // Only fire if the number actually changes
+//            .collect { index ->
+//                // Only trigger if the user is actually dragging/scrolling
+//                if (scrollState.isScrollInProgress) {
+//                    haptic.selection()
+//                }
+//            }
+//    }
+//
+//    LaunchedEffect(isAtTop) {
+//        if (isAtTop && scrollState.isScrollInProgress) {
+//            haptic.impact()
+//        }
+//    }
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("Team Members") })
@@ -111,7 +157,8 @@ fun UsersListContent(users: List<User>, onUserClick: (User) -> Unit) {
                     .fillMaxSize()
                     .padding(paddingValues),
                 contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                state = scrollState
             ) {
                 items(
                     items = users,
@@ -132,10 +179,14 @@ fun UserCard(
     user: User,
     onClick: () -> Unit,
 ) {
+    val haptic = koinInject<HapticManager>()
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() },
+            .clickable {
+                haptic.impact()
+                onClick()
+            },
         shape = RoundedCornerShape(12.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
