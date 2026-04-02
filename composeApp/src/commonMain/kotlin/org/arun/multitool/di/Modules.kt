@@ -7,6 +7,7 @@ import org.arun.multitool.repository.UserRepository
 import org.arun.multitool.data.database.AppDatabase
 import org.arun.multitool.data.database.getRoomDatabase
 import org.arun.multitool.data.httpClient
+import org.arun.multitool.ui.transition.TransitionHandler
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -17,6 +18,8 @@ val sharedModule = module {
     single<UserDao> { get<AppDatabase>().userDao() }
 
     single { Settings() }   // Simple no-arg factory for Android/iOS
+
+    single { TransitionHandler() }
 
     // Repository: Create a new instance when needed, but inject the client
     factory { UserRepository(get(), get(), get()) }
