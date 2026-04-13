@@ -1,13 +1,14 @@
 package org.arun.multitool.di
 
 import com.russhwolf.settings.Settings
-import org.arun.multitool.ui.viewmodels.TimerViewModel
 import org.arun.multitool.data.UserDao
-import org.arun.multitool.repository.UserRepository
 import org.arun.multitool.data.database.AppDatabase
 import org.arun.multitool.data.database.getRoomDatabase
 import org.arun.multitool.data.httpClient
+import org.arun.multitool.repository.UserRepository
 import org.arun.multitool.ui.transition.TransitionHandler
+import org.arun.multitool.ui.viewmodels.CheckInViewModel
+import org.arun.multitool.ui.viewmodels.TimerViewModel
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
@@ -27,6 +28,7 @@ val sharedModule = module {
     // ViewModel: Koin 4.0 handles CMP ViewModels natively
 //    viewModelOf(::TimerViewModel)
     factory { TimerViewModel(get(), get()) }
+    factory { CheckInViewModel(get()) }
 }
 
 expect val platformModule: Module

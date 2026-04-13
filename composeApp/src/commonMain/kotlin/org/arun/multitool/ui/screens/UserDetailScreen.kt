@@ -105,7 +105,10 @@ data class UserDetailScreen(val userId: Int, val name: String) : Screen {
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     Button(
-                        onClick = { showDeleteDialog = true },
+                        onClick = {
+//                            showDeleteDialog = true
+                            navigator.push(CheckInScreen)
+                        },
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                     ) {
                         Text("Remove Member")
