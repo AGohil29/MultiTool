@@ -9,7 +9,9 @@ import org.arun.multitool.hardware.IOSLocationService
 import org.arun.multitool.hardware.LocationService
 import org.arun.multitool.ui.components.HapticManager
 import org.arun.multitool.ui.components.IOSHapticManager
+import org.arun.multitool.utils.PermissionManager
 import org.koin.dsl.module
+import utils.IOSPermissionManager
 
 actual val platformModule = module {
     single<PlatformNotifier> { IosNotifier() }
@@ -18,4 +20,5 @@ actual val platformModule = module {
     }
     single<HapticManager> { IOSHapticManager() }
     single<LocationService> { IOSLocationService() }
+    single<PermissionManager> { IOSPermissionManager() }
 }

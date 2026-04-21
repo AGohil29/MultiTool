@@ -102,8 +102,7 @@ actual fun CameraPreview(modifier: Modifier) {
         UIKitView(
             factory = {
                 val container = UIView()
-                container.backgroundColor =
-                    UIColor.greenColor // Set to black so we know if it's the layer or the view
+                container.backgroundColor = UIColor.blackColor
                 // 2. Set up the camera device
                 val device = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
                 if (device == null) {
