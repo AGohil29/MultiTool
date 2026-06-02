@@ -52,6 +52,7 @@ kotlin {
             implementation(libs.androidx.camera)
             implementation(libs.androidx.camera.lifecycle)
             implementation(libs.androidx.camera.view)
+            implementation(libs.splash.screen)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -78,8 +79,11 @@ kotlin {
             implementation(libs.voyager.transitions)
             implementation(libs.voyager.koin)
             implementation(libs.compose.icons.core)
+            implementation(libs.adaptive)
+            implementation(libs.adaptive.layout)
+            implementation(libs.adaptive.navigation)
+            implementation(libs.adaptive.navigation.suite)  // NavigationSuiteScaffold
 //            implementation(libs.compose.icons.extended) // Only if needed
-            implementation(libs.splash.screen)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)

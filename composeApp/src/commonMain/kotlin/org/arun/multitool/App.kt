@@ -38,19 +38,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.navigator.Navigator
-import cafe.adriel.voyager.transitions.SlideTransition
 import org.arun.multitool.data.User
+import org.arun.multitool.ui.common.LocalWindowAdaptiveInfo
+import org.arun.multitool.ui.common.RecompositionTracker
 import org.arun.multitool.ui.common.rememberHapticFeedback
 import org.arun.multitool.ui.components.HapticManager
-import org.arun.multitool.ui.screens.UserListScreen
 import org.arun.multitool.ui.transition.TransitionHandler
 import org.koin.compose.koinInject
 
+@OptIn(ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 @Preview
 fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
+    RecompositionTracker("App")
+    // Capture the window layout state once, at the top of the composition tree.
+    // currentWindowAdaptiveInfo() is the single cross-platform entry point provided
+    // by the Material 3 adaptive library — no custom expect/actual sizing bridges needed.
+    val windowAdaptiveInfo = currentWindowAdaptiveInfo()
 //    val themeColor =
 //        if (isIOS) Color(0xFF007AFF) else Color(0xFF6200EE) // iOS Blue vs Android Purple
 //    // Koin finds the ViewModel and injects the Repository + Client automatically
@@ -95,18 +107,19 @@ fun App(isIOS: Boolean = false, someText: String = "Default Shared Text") {
 //    }
 
     MaterialTheme {
-        Navigator(screen = UserListScreen) { navigator ->
-            SlideTransition(navigator) { screen ->
-                screen.Content()
-            }
+        // Provide the captured state to the entire subtree through a CompositionLocal.
+        // MainContainer reads it via currentAdaptiveInfo to drive NavigationSuiteScaffold.
+        CompositionLocalProvider(LocalWindowAdaptiveInfo provides windowAdaptiveInfo) {
+            MainContainer()
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UsersListContent(users: List<User>, onUserClick: (User) -> Unit) {
+fun UsersListContent(users: List<User>, columns: Int = 1, onUserClick: (User) -> Unit) {
     val scrollState = rememberLazyListState()
+    val gridState = rememberLazyGridState()
     scrollState.rememberHapticFeedback(koinInject())
 //    val isAtTop by remember { derivedStateOf { scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0 } }
 
@@ -157,22 +170,44 @@ fun UsersListContent(users: List<User>, onUserClick: (User) -> Unit) {
                 Text("No users found. Pull to refresh!")
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                state = scrollState
-            ) {
-                items(
-                    items = users,
-                    key = { it.id }     // Critical for smooth animations and performance
-                ) { user ->
-                    UserCard(
-                        user = user,
-                        onClick = { onUserClick(user) }
-                    )
+            if (columns > 1) {
+                // Expanded window (tablet / desktop) — two-column grid
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(columns),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    state = gridState
+                ) {
+                    items(
+                        items = users,
+                        key = { it.id }
+                    ) { user ->
+                        UserCard(user = user, onClick = { onUserClick(user) })
+                    }
+                }
+            } else {
+                // Compact / Medium window — single-column list
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    state = scrollState
+                ) {
+                    items(
+                        items = users,
+                        key = { it.id }     // Critical for smooth animations and performance
+                    ) { user ->
+                        UserCard(
+                            user = user,
+                            onClick = { onUserClick(user) }
+                        )
+                    }
                 }
             }
         }

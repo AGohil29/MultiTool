@@ -4,8 +4,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
@@ -18,6 +21,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +34,9 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import org.arun.multitool.ui.common.currentAdaptiveInfo
+import org.arun.multitool.ui.common.ScreenSize
+import org.arun.multitool.ui.common.screenSize
 import org.arun.multitool.ui.components.AnimatedProfileHeader
 import org.arun.multitool.ui.components.AnimatedWaveBackground
 import org.arun.multitool.ui.components.CommonAlertDialog
@@ -37,13 +44,26 @@ import org.arun.multitool.ui.components.HapticManager
 import org.koin.compose.koinInject
 
 data class UserDetailScreen(val userId: Int, val name: String) : Screen {
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
     @Composable
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         var showDeleteDialog by remember { mutableStateOf(false) }
         val haptic = koinInject<HapticManager>()
         var isExpanded by remember { mutableStateOf(false) }
+
+        // Read the window layout state pushed down from App() via LocalWindowAdaptiveInfo.
+        // On expanded screens (tablet / desktop) we cap the content column at 600 dp and
+        // centre it — no custom expect/actual or platform-specific code needed.
+        val adaptiveInfo = currentAdaptiveInfo
+        val contentModifier = when (adaptiveInfo.screenSize) {
+            ScreenSize.COMPACT -> Modifier.fillMaxSize() // Phone portrait
+            ScreenSize.MEDIUM  -> Modifier.fillMaxSize() // Foldable / mini-tablet
+            ScreenSize.EXPANDED -> Modifier              // Tablet / desktop – cap width & centre
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.CenterHorizontally)
+                .widthIn(max = 600.dp)
+        }
 
         if (showDeleteDialog) {
             CommonAlertDialog(
@@ -79,8 +99,7 @@ data class UserDetailScreen(val userId: Int, val name: String) : Screen {
                 }
             ) { paddingValues ->
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
+                    modifier = contentModifier
                         .padding(paddingValues)
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
