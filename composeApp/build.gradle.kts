@@ -90,11 +90,11 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.1")
-            implementation("app.cash.turbine:turbine:1.1.0")
-            implementation("io.insert-koin:koin-test:4.0.0")
-            implementation("io.ktor:ktor-client-mock:3.0.0")
-            implementation("com.russhwolf:multiplatform-settings-test:1.3.0")
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
+            implementation(libs.koin.test)
+            implementation(libs.ktor.client.mock)
+            implementation(libs.multiplatform.settings.test)
         }
         val desktopMain by getting {
             dependencies {
@@ -133,6 +133,7 @@ android {
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
+            isShrinkResources = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
