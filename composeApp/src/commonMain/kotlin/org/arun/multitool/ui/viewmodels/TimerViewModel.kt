@@ -1,21 +1,22 @@
-package org.arun.multitool
+package org.arun.multitool.ui.viewmodels
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import cafe.adriel.voyager.core.model.ScreenModel
+import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.arun.multitool.data.UserEntity
-import org.arun.multitool.data.UserRepository
+import org.arun.multitool.NetworkResult
+import org.arun.multitool.PlatformNotifier
+import org.arun.multitool.data.User
+import org.arun.multitool.repository.UserRepository
 
 class TimerViewModel(
     private val userRepository: UserRepository,
     private val notifier: PlatformNotifier
-) : ViewModel() {
+) : ScreenModel {
     private val _seconds = MutableStateFlow(0)
     val seconds: StateFlow<Int> = _seconds.asStateFlow()
 
@@ -26,33 +27,33 @@ class TimerViewModel(
     val userState = _userState.asStateFlow()
 
     // UI observes this. It updates automatically whenever the DB changes.
-    val usersList: StateFlow<List<UserEntity>> = userRepository.getAllUsers()
+    val usersList: StateFlow<List<User>> = userRepository.getAllUsers()
         .stateIn(
-            scope = viewModelScope,
+            scope = screenModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
     init {
-        refreshData()
+        refreshData(false)
     }
 
-    private fun startTimer() {
-        viewModelScope.launch {
-            while (true) {
-                delay(1000)
-                _seconds.value++
-            }
-        }
-    }
+//    private fun startTimer() {
+//        viewModelScope.launch {
+//            while (true) {
+//                delay(1000)
+//                _seconds.value++
+//            }
+//        }
+//    }
 
     fun onButtonClicked() {
         notifier.showToast("Hello from Shared ViewModel!")
     }
 
-    fun refreshData() {
-        viewModelScope.launch {
-            userRepository.refreshUsers()
+    fun refreshData(forceRefresh: Boolean) {
+        screenModelScope.launch {
+            userRepository.refreshUsersIfNecessary(forceRefresh)
         }
     }
 }

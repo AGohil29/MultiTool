@@ -1,8 +1,6 @@
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import org.arun.multitool.App
-import org.arun.multitool.DesktopNotifier
-import org.arun.multitool.TimerViewModel
 import org.arun.multitool.di.initKoin
 
 

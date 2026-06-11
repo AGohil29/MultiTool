@@ -1,4 +1,4 @@
-package org.arun.multitool
+package org.arun.multitool.data
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

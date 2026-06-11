@@ -1,0 +1,158 @@
+# ============================================================================
+# KMP Enterprise Pipeline — CI/CD Workflow
+# ============================================================================
+# This workflow automates code quality checks for a Kotlin Multiplatform (KMP)
+# project targeting Android and iOS. Every time code is pushed or a Pull Request
+# is opened, the pipeline checks out the repository, runs unit tests, and
+# builds release-ready artifacts.
+#
+# Architecture:
+#   - Uses a Ubuntu runner for Android (fast and cheap).
+#   - Uses a macOS runner for iOS (required for Apple toolchain).
+#   - Both jobs run in PARALLEL since neither depends on the other.
+#
+# Flow:
+#   Push to main/develop ──┐
+#                          ├──▶ GitHub Actions triggered
+#   Open PR to main     ──┘
+#                                │
+#                ┌───────────────┴───────────────┐
+#                ▼                               ▼
+#       build-android                       build-ios
+#       (ubuntu-latest)                     (macos-14)
+#
+#   Both jobs must pass (✅) for the workflow to be green.
+#   If either fails, the PR shows a failed status check.
+# ============================================================================
+name: KMP Enterprise Pipeline
+
+# ──────────────────────────────────────────────────────────────────────────────
+# TRIGGER EVENTS
+# ──────────────────────────────────────────────────────────────────────────────
+# push    : Runs every time code is pushed (committed) to 'main' or 'develop'.
+#           This catches direct commits and merged PRs.
+# pull_request : Runs when a PR is opened, synchronized (new commits pushed),
+#                or reopened targeting 'main'. Provides a quality gate — the PR
+#                will show a ✅ or ❌ status check before merging.
+#
+# NOTE: Pushes to feature branches (e.g. feature/login) do NOT trigger this
+#       workflow unless a PR is opened to 'main'.
+# ──────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+# ──────────────────────────────────────────────────────────────────────────────
+# JOBS
+# ──────────────────────────────────────────────────────────────────────────────
+# Two jobs are defined: build-android and build-ios.
+# Since neither job declares a 'needs:' dependency on the other, they run
+# in PARALLEL on separate machines, saving total pipeline time.
+# ──────────────────────────────────────────────────────────────────────────────
+jobs:
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 1: ANDROID BUILD & TEST
+  # ════════════════════════════════════════════════════════════════════════════
+  # Runner: ubuntu-latest (Linux VM)
+  #   - Cheapest and fastest runner type on GitHub Actions.
+  #   - Android builds only need JDK + Gradle — no Mac hardware required.
+  #   - Billed at 1x rate (vs 10x for macOS runners).
+  # ════════════════════════════════════════════════════════════════════════════
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Clone the repository onto the runner.
+      # Without this, the runner has an empty filesystem and no access to code.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Azul Zulu JDK 17.
+      # Kotlin and Gradle both require a JDK to run.
+      #   - distribution: 'zulu' — Azul Zulu is a well-tested, free OpenJDK build.
+      #   - java-version: '17'  — JDK 17 LTS, required by modern Android Gradle Plugin.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # Step 3: Cache Gradle dependencies and build outputs.
+      # Caches ~/.gradle/caches and ~/.gradle/wrapper directories.
+      # On subsequent runs, dependencies are restored from cache instead of
+      # re-downloaded, typically saving 2–5 minutes per build.
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      # Step 4: Execute release-variant unit tests.
+      # Runs all JVM-based unit tests (in src/test/) against the 'release' build type.
+      # If any test fails → step fails → job fails → workflow marked ❌ → PR blocked.
+      - name: Run Android Unit Tests
+        run: ./gradlew testReleaseUnitTest
+
+      # Step 5: Compile and package the release APK for the composeApp module.
+      # Verifies the app compiles with ProGuard/R8 minification (release config)
+      # and produces a deployable artifact. Catches R8 issues, missing ProGuard
+      # rules, or compile errors.
+      - name: Build Release APK
+        run: ./gradlew :composeApp:assembleRelease
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # JOB 2: iOS BUILD & TEST
+  # ════════════════════════════════════════════════════════════════════════════
+  # Runner: macos-14 (macOS Sonoma with Apple Silicon M1/M2)
+  #   - iOS builds REQUIRE Xcode and Apple's toolchain, only available on macOS.
+  #   - ARM-based runners are faster for iOS compilation and match the
+  #     architecture of modern Apple devices.
+  #   - ⚠️ macOS runners are 10x MORE EXPENSIVE than Ubuntu runners on GitHub
+  #     Actions (billed at 10 min per actual minute). That's why ONLY the iOS
+  #     job uses one.
+  # ════════════════════════════════════════════════════════════════════════════
+  build-ios:
+    runs-on: macos-14
+    steps:
+      # Step 1: Clone the repository onto the Mac runner.
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Azul Zulu JDK 17.
+      # Needed because KMP shared code is compiled by the Kotlin compiler
+      # (which runs on the JVM) even for iOS targets.
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      # Step 3: Cache Gradle dependencies (same as Android job).
+      - name: Setup Gradle Cache
+        uses: gradle/actions/setup-gradle@v3
+
+      # Step 4: Select Xcode 15.4 as the active developer toolchain.
+      # macOS runners come with multiple Xcode versions pre-installed.
+      # This ensures a specific, known version is used for reproducible builds.
+      # 'sudo' is required because xcode-select modifies a system-level symlink.
+      - name: Setup Xcode Select
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+
+      # Step 5: Run Kotlin Multiplatform tests targeting iOS Simulator on ARM64.
+      # This executes:
+      #   - All tests in commonTest/ (shared test code that runs on every platform)
+      #   - All tests in iosTest/   (iOS-specific test code)
+      # Tests are compiled to a native iOS binary via Kotlin/Native and executed
+      # on an iOS Simulator. The 'Arm64' suffix matches the Apple Silicon
+      # architecture of the macos-14 runner.
+      - name: Run KMP Common & iOS Tests
+        run: ./gradlew iosSimulatorArm64Test
+
+      # Step 6: Build the shared KMP framework (.framework bundle) consumed
+      # by the native iOS app (iosApp/).
+      # This Gradle task:
+      #   1. Compiles all shared Kotlin code to a native iOS binary.
+      #   2. Packages it as an Apple .framework.
+      #   3. Signs it (if signing identity is configured).
+      # Verifies the full iOS integration compiles successfully end-to-end.
+      - name: Build Shared iOS Framework
+        run: ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode
