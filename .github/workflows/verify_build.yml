@@ -86,13 +86,37 @@ jobs:
       - name: Setup Gradle Cache
         uses: gradle/actions/setup-gradle@v3
 
-      # Step 4: Execute release-variant unit tests.
+      # Step 4: Decode the release keystore from a GitHub Secret.
+      # The keystore file (release.keystore) is stored as a Base64-encoded
+      # secret (RELEASE_KEYSTORE_BASE64) because GitHub Secrets only support
+      # text values. This step decodes it back into a binary .keystore file
+      # in the expected location (composeApp/release.keystore).
+      #
+      # To create the secret value, run locally:
+      #   base64 -i composeApp/release.keystore | pbcopy
+      # Then paste it as a GitHub repository secret named RELEASE_KEYSTORE_BASE64.
+      - name: Decode Release Keystore
+        run: echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > composeApp/release.keystore
+
+      # Step 5: Create local.properties with signing credentials from secrets.
+      # The build script reads keystore passwords and key alias from
+      # local.properties. On CI, we generate this file from GitHub Secrets:
+      #   - KEYSTORE_PASSWORD : Password to open the keystore file.
+      #   - KEY_ALIAS         : Name of the key entry inside the keystore.
+      #   - KEY_PASSWORD      : Password for the specific key entry.
+      - name: Create Signing Properties
+        run: |
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> local.properties
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> local.properties
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> local.properties
+
+      # Step 6: Execute release-variant unit tests.
       # Runs all JVM-based unit tests (in src/test/) against the 'release' build type.
       # If any test fails → step fails → job fails → workflow marked ❌ → PR blocked.
       - name: Run Android Unit Tests
         run: ./gradlew testReleaseUnitTest
 
-      # Step 5: Compile and package the release APK for the composeApp module.
+      # Step 7: Compile and package the release APK for the composeApp module.
       # Verifies the app compiles with ProGuard/R8 minification (release config)
       # and produces a deployable artifact. Catches R8 issues, missing ProGuard
       # rules, or compile errors.
