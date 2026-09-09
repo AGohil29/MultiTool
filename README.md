@@ -1,4 +1,4 @@
-This is a Kotlin Multiplatform project targeting Android, iOS.
+This is a Kotlin Multiplatform project targeting Android, iOS and Desktop with Koin, Ktor, Room and Voyager.
 
 ## Architecture
 
