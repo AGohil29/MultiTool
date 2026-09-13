@@ -47,10 +47,6 @@ private val ALL_TABS: List<AppTab> = listOf(
     AppTab.Config,
 )
 
-// ---------------------------------------------------------------------------
-// MainContainer
-// ---------------------------------------------------------------------------
-
 /**
  * Top-level shell that wraps every root destination inside a
  * [NavigationSuiteScaffold].
@@ -79,7 +75,6 @@ fun MainContainer() {
     RecompositionTracker("MainContainer")
     var selectedTab by remember { mutableStateOf<AppTab>(AppTab.Directory) }
 
-    // Read the WindowAdaptiveInfo that was provided by App().
     val adaptiveInfo = currentAdaptiveInfo
 
     // Determine the current screen size class (Compact / Medium / Expanded).
