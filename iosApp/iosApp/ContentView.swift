@@ -19,14 +19,14 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Text("I am a Native Swift Label")
-                .font(.headline)
-                .foregroundStyle(.white)
-                .padding()
-            
-            Text(userName)
-                .font(.largeTitle)
-                .fontWeight(.bold)
+//            Text("I am a Native Swift Label")
+//                .font(.headline)
+//                .foregroundStyle(.white)
+//                .padding()
+//            
+//            Text(userName)
+//                .font(.largeTitle)
+//                .fontWeight(.bold)
             
 //            switch onEnum(of: authState) {
 //            case .loading:
@@ -58,20 +58,20 @@ struct ContentView: View {
 //            }
             
             // --- DEVELOPER DEBUG TOOL ---
-            Button(action: {
-                // Calls your shared expect/actual object directly from Swift
-                GarbageCollector.shared.forceCollect()
-            }) {
-                HStack {
-                    Image(systemName: "trash.fill")
-                    Text("Force Kotlin GC Sweep")
-                }
-                .padding()
-                .background(Color.orange)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .padding(.top, 10)
+//            Button(action: {
+//                // Calls your shared expect/actual object directly from Swift
+//                GarbageCollector.shared.forceCollect()
+//            }) {
+//                HStack {
+//                    Image(systemName: "trash.fill")
+//                    Text("Force Kotlin GC Sweep")
+//                }
+//                .padding()
+//                .background(Color.orange)
+//                .foregroundColor(.white)
+//                .cornerRadius(8)
+//            }
+//            .padding(.top, 10)
             
             ComposeView(someText: "Hello from Swift")
                 .ignoresSafeArea(.all)
