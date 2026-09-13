@@ -41,6 +41,12 @@ This is a Kotlin Multiplatform project targeting Android, iOS.
 | iOS      | `iosMain`       | Darwin       | `iosApp/` (SwiftUI)      |
 | Desktop  | `desktopMain`   | OkHttp       | `main.kt`                |
 
+### Platform Previews
+
+|                                     Android                                     |                                   iOS                                   |                         Desktop (Compose Multiplatform)                         |
+|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|
+| <img src=".github/assets/android-home.png" width="220" alt="Android Preview" /> | <img src=".github/assets/ios-home.png" width="220" alt="iOS Preview" /> | <img src=".github/assets/desktop-home.png" width="400" alt="Desktop Preview" /> |
+
 ### Package Structure (`commonMain`)
 
 ```
