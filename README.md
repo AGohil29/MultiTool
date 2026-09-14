@@ -45,7 +45,7 @@ This is a Kotlin Multiplatform project targeting Android, iOS and Desktop with K
 
 |                                  Android                                  |                                iOS                                |                      Desktop (Compose Multiplatform)                      |
 |:-------------------------------------------------------------------------:|:-----------------------------------------------------------------:|:-------------------------------------------------------------------------:|
-| <img src="previews/android-home.png" width="220" alt="Android Preview" /> | <img src="previews/ios-home.png" width="220" alt="iOS Preview" /> | <img src="previews/desktop-home.png" width="400" alt="Desktop Preview" /> |
+| <img src="previews/android_home.png" width="220" alt="Android Preview" /> | <img src="previews/iOS_home.png" width="220" alt="iOS Preview" /> | <img src="previews/desktop_home.png" width="400" alt="Desktop Preview" /> |
 
 ### Package Structure (`commonMain`)
 
