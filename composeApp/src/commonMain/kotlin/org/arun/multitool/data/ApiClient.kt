@@ -1,4 +1,4 @@
-package org.arun.multitool
+package org.arun.multitool.data
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 
 val httpClient = HttpClient {
     install(Logging){
-        // 1. Custom Logger implementation
+        // Custom Logger implementation
         logger = object : Logger {
             override fun log(message: String) {
                 // In KMP, 'println' is mapped to Logcat (Android)
@@ -22,10 +22,10 @@ val httpClient = HttpClient {
                 println("HTTP Client: $message")
             }
         }
-        // 2. Control the level (Use HEADERS for production, BODY for dev)
+        // Control the level (Use HEADERS for production, BODY for dev)
         level = LogLevel.BODY
 
-        // 3. Senior Move: Filter out sensitive endpoints or static assets
+        // Filter out sensitive endpoints or static assets
         filter { request ->
             request.url.host.contains("")
         }

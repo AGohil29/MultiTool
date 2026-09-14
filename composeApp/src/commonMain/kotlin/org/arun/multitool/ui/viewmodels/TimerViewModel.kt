@@ -1,4 +1,4 @@
-package org.arun.multitool
+package org.arun.multitool.ui.viewmodels
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import org.arun.multitool.data.UserRepository
+import org.arun.multitool.NetworkResult
+import org.arun.multitool.PlatformNotifier
+import org.arun.multitool.data.User
+import org.arun.multitool.repository.UserRepository
 
 class TimerViewModel(
     private val userRepository: UserRepository,

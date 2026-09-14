@@ -1,4 +1,4 @@
-package org.arun.multitool.data
+package org.arun.multitool.repository
 
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
@@ -10,7 +10,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import org.arun.multitool.NetworkResult
-import org.arun.multitool.User
+import org.arun.multitool.data.User
+import org.arun.multitool.data.UserDao
+import org.arun.multitool.data.UserEntity
 import kotlin.time.Clock
 
 class UserRepository(
@@ -18,8 +20,8 @@ class UserRepository(
     private val userDao: UserDao,
     private val settings: Settings
 ) {
-    private val LAST_SYNC_KEY = "last_sync_timestamp"
-    private val SYNC_INTERVAL_MS = 10 * 60 * 1000L // 10 minutes
+    private val lastSyncKey = "last_sync_timestamp"
+    private val syncIntervalMS = 10 * 60 * 1000L // 10 minutes
 
     // 1. Expose a Flow from the Database (SSOT)
     fun getAllUsers(): Flow<List<User>> = userDao.getAllUsers().map { entities ->
@@ -27,13 +29,13 @@ class UserRepository(
     }
 
     suspend fun refreshUsersIfNecessary(forceRefresh: Boolean = false) {
-        val lastSync = settings.getLong(LAST_SYNC_KEY, 0L)
+        val lastSync = settings.getLong(lastSyncKey, 0L)
         val currentTime = Clock.System.now().toEpochMilliseconds()
 
-        if (forceRefresh || currentTime - lastSync > SYNC_INTERVAL_MS) {
+        if (forceRefresh || currentTime - lastSync > syncIntervalMS) {
             val result = refreshUsers()
             if (result is NetworkResult.Success) {
-                settings.putLong(LAST_SYNC_KEY, currentTime)
+                settings.putLong(lastSyncKey, currentTime)
             }
         }
     }
